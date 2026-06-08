@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16
+    container_name: rhinologie_postgres
+    environment:
+      POSTGRES_DB: rhinologie
+      POSTGRES_USER: rhinologie
+      POSTGRES_PASSWORD: rhinologie
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rhinologie -d rhinologie"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    container_name: rhinologie_api
+    environment:
+      DATABASE_URL: postgresql+psycopg://rhinologie:rhinologie@db:5432/rhinologie
+      ENVIRONMENT: docker
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
